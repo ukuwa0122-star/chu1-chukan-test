@@ -1,0 +1,10 @@
+{
+  "name": "中1 9月中間対策",
+  "short_name": "中間対策",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5f8fc",
+  "theme_color": "#1f4c88",
+  "lang": "ja",
+  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]
+}

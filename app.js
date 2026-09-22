@@ -1,0 +1,40 @@
+(() => {
+  const DATA = window.QUESTION_DATA;
+  const STORE = 'chugaku-september-v1';
+  const state = { view:'home', subject:null, questions:[], current:0, answers:{}, result:null };
+  const app = document.querySelector('#app');
+  const load = () => JSON.parse(localStorage.getItem(STORE) || '{"history":[],"mistakes":{}}');
+  const save = data => localStorage.setItem(STORE, JSON.stringify(data));
+  const esc = value => String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const header = (back=true) => `<header><div>${back ? '<button class="back" data-go="home" aria-label="ホームに戻る">‹</button>' : '<span class="mark">中</span>'}<div><strong>中1 9月中間対策</strong><small>英語・社会</small></div></div><button class="history-button" data-go="history">記録</button></header>`;
+  const subjectCard = key => { const s=DATA[key], stats=subjectStats(key); return `<button class="subject-card ${s.color}" data-subject="${key}"><span class="subject-icon">${key==='english'?'A':'地'}</span><span><b>${s.name}</b><small>${s.range}</small></span><span class="arrow">›</span>${stats.count?`<em>平均 ${stats.average}点</em>`:''}</button>`; };
+  const subjectStats = key => { const h=load().history.filter(x=>x.subject===key); return {count:h.length,average:h.length?Math.round(h.reduce((a,x)=>a+x.score,0)/h.length):0}; };
+  function home(){
+    const d=load(), total=d.history.length, recent=d.history[0];
+    app.innerHTML=`${header(false)}<section class="hero"><p>テストまでの力を、今日の1回で。</p><h1>今日の学習を選ぼう</h1><span class="range-note">仮の範囲：範囲表をもらったら問題を調整できます</span></section><section class="home-section"><h2>教科を選ぶ</h2>${subjectCard('english')}${subjectCard('social')}</section><section class="quick"><h2>復習・記録</h2><div class="quick-grid"><button data-go="review"><b>まちがい復習</b><small>${Object.values(d.mistakes||{}).reduce((n,a)=>n+a.length,0)}問たまっています</small></button><button data-go="history"><b>模試の記録</b><small>${total?`直近 ${recent.subjectName} ${recent.score}点`:'まだ記録がありません'}</small></button></div></section><p class="privacy">学習記録はこのiPhone（またはこのブラウザ）だけに保存されます。</p>`;
+  }
+  function chooseSubject(key){ const s=DATA[key]; state.subject=key; app.innerHTML=`${header()}<section class="subject-page"><span class="pill ${s.color}">${s.name}</span><h1>${s.name}を学習する</h1><p>${s.range}</p><div class="action-stack"><button class="big-action primary ${s.color}" data-start="exam"><span>模擬試験</span><small>全30問・100点満点・自動採点</small><b>はじめる ›</b></button><button class="big-action" data-start="review"><span>この教科の復習</span><small>間違えた問題をもう一度</small><b>›</b></button></div><details><summary>今回の仮の試験範囲</summary><p>${s.range}</p><p>問題は「単元」ごとに分かれています。実際の範囲表に合わせて、問題データを入れ替えられます。</p></details></section>`; }
+  function start(kind, key=state.subject){
+    const s=DATA[key], mistakes=(load().mistakes[key]||[]);
+    let qs = kind==='review' ? s.questions.filter(q=>mistakes.includes(q.id)) : s.questions;
+    if(!qs.length){ alert('まだ復習する問題はありません。模擬試験をしてみよう！'); return chooseSubject(key); }
+    state.subject=key; state.questions=qs; state.current=0; state.answers={}; state.result=null; state.kind=kind; renderQuestion();
+  }
+  function renderQuestion(){ const q=state.questions[state.current], n=state.current+1, chosen=state.answers[q.id]; const percent=Math.round((state.current/state.questions.length)*100);
+    app.innerHTML=`${header()}<section class="quiz"><div class="quiz-top"><span>${DATA[state.subject].name} ${state.kind==='review'?'復習':'模擬試験'}</span><span>${n} / ${state.questions.length}</span></div><div class="progress"><i style="width:${percent}%"></i></div><span class="unit">${esc(q.unit)}・${esc(q.level)}</span><h1>${esc(q.text)}</h1><div class="choices">${q.choices.map((c,i)=>`<button class="choice ${chosen===i?'selected':''}" data-answer="${i}"><b>${'アイウエ'[i]}</b><span>${esc(c)}</span></button>`).join('')}</div><div class="quiz-nav"><button class="subtle" data-prev ${state.current===0?'disabled':''}>前へ</button><button class="next" data-next ${chosen===undefined?'disabled':''}>${n===state.questions.length?'採点する':'次へ'}</button></div></section>`; }
+  function finish(){ const correct=state.questions.filter(q=>state.answers[q.id]===q.answer); const score=Math.round(correct.length/state.questions.length*100); state.result={correct,score};
+    const d=load(), old=d.mistakes[state.subject]||[], wrong=state.questions.filter(q=>state.answers[q.id]!==q.answer).map(q=>q.id);
+    d.mistakes[state.subject]=[...new Set([...old,...wrong])].filter(id=>!correct.some(q=>q.id===id));
+    if(state.kind==='exam') d.history.unshift({date:new Date().toISOString(),subject:state.subject,subjectName:DATA[state.subject].name,score,total:state.questions.length,correct:correct.length});
+    save(d);
+    renderResult();
+  }
+  function renderResult(){ const {correct,score}=state.result, qs=state.questions, wrong=qs.filter(q=>!correct.includes(q)); const message=score>=80?'よくできました！':score>=60?'あと一歩。復習で伸ばそう！':'基本をもう一度確認しよう！';
+    app.innerHTML=`${header()}<section class="result"><div class="score-ring"><span>${score}</span><small>点</small></div><h1>${message}</h1><p>${correct.length} / ${qs.length} 問正解</p>${wrong.length?`<button class="review-cta" data-start="review">まちがいを復習する</button>`:'<p class="perfect">全問正解！すばらしい。</p>'}<h2>答えと解説</h2><div class="explanations">${qs.map((q,i)=>{const ok=correct.includes(q), a=state.answers[q.id];return `<article class="explanation ${ok?'ok':'ng'}"><div><b>${i+1}. ${ok?'正解':'まちがい'}</b><span>${esc(q.unit)}</span></div><p>${esc(q.text)}</p><p class="answer">あなた：${esc(q.choices[a]||'未回答')}<br>正解：${esc(q.choices[q.answer])}</p><p>${esc(q.explanation)}</p></article>`}).join('')}</div><button class="home-bottom" data-go="home">ホームへ戻る</button></section>`;
+  }
+  function reviewHome(){ const d=load(), entries=Object.entries(DATA).map(([key,s])=>({key,s,count:(d.mistakes[key]||[]).length})); app.innerHTML=`${header()}<section class="list-page"><h1>まちがい復習</h1><p>模擬試験で間違えた問題がここに残ります。正解すると一覧から外れます。</p>${entries.map(({key,s,count})=>`<button class="review-card" data-review-subject="${key}"><span class="subject-icon ${s.color}">${key==='english'?'A':'地'}</span><span><b>${s.name}</b><small>${count?`${count}問を復習できます`:'今は復習問題はありません'}</small></span><b>${count? '始める ›':'✓'}</b></button>`).join('')}</section>`; }
+  function history(){ const h=load().history; app.innerHTML=`${header()}<section class="list-page"><h1>模試の記録</h1>${h.length?`<div class="chart">${h.slice(0,12).reverse().map(x=>`<div title="${x.subjectName} ${x.score}点"><i class="${x.subject}" style="height:${Math.max(8,x.score)}%"></i><small>${x.score}</small></div>`).join('')}</div><p class="chart-label">最近の点数（最大12回）</p><div class="history-list">${h.map(x=>`<article><span class="date">${new Date(x.date).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'})}</span><b>${x.subjectName}</b><span>${x.correct}/${x.total}問</span><strong>${x.score}点</strong></article>`).join('')}</div><button class="danger" data-clear-history>記録をすべて消す</button>`:'<div class="empty">まだ模試の記録がありません。<br>教科を選んで最初の模試に挑戦しよう。</div>'}</section>`; }
+  app.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; if(b.dataset.go) return b.dataset.go==='home'?home():b.dataset.go==='review'?reviewHome():history(); if(b.dataset.subject)return chooseSubject(b.dataset.subject); if(b.dataset.reviewSubject)return start('review',b.dataset.reviewSubject); if(b.dataset.start)return start(b.dataset.start); if(b.dataset.answer!==undefined){state.answers[state.questions[state.current].id]=Number(b.dataset.answer);return renderQuestion();} if(b.dataset.prev!==undefined){state.current--;return renderQuestion();} if(b.dataset.next!==undefined){return state.current===state.questions.length-1?finish():(state.current++,renderQuestion());} if(b.hasAttribute('data-clear-history')&&confirm('模試の記録と復習問題をすべて消しますか？')){localStorage.removeItem(STORE);history();} });
+  if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
+  home();
+})();
