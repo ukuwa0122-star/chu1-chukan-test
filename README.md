@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/32495007/README.md)
+[README.md](https://github.com/user-attachments/files/32495795/README.md)
 [README.md](https://github.com/user-attachments/files/32493696/README.md)
 # 中1・9月中間テスト対策 PWA Ver.2
 
@@ -15,6 +15,8 @@ Macで `index.html` をブラウザで開くと使えます。学習記録はブ
 - 解説の後に確認問題、単元ごとの正答率、苦手問題の自動特訓
 - 2回連続で正解すると苦手問題から卒業
 - 100点を取ると、スクリーンショットをパパへ送るためのお祝いページを表示
+- 標準・ハード・ベリーハードの難易度を選択可能。ベリーハードは各教科30問の専用問題バンク
+- 起動時にリリース番号を確認し、新版があれば自動的に読み直す（ネット接続時）
 
 既存のVer.1の模試記録・復習リストは、初回起動時にVer.2の保存形式へ移します。問題別の詳細な履歴はVer.2から新しく蓄積されます。
 
