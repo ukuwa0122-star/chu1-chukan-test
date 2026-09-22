@@ -1,4 +1,4 @@
-const CACHE='chugaku-test-v1';
+const CACHE='chugaku-test-v2';
 const FILES=['./','./index.html','./style.css','./app.js','./questions.js','./manifest.webmanifest','./icon.svg','./favicon.svg'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
 self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
