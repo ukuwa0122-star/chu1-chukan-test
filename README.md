@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/32494184/README.md)
+[README.md](https://github.com/user-attachments/files/32494925/README.md)
 [README.md](https://github.com/user-attachments/files/32493696/README.md)
 # 中1・9月中間テスト対策 PWA Ver.2
 
@@ -6,7 +6,7 @@ Macで `index.html` をブラウザで開くと使えます。学習記録はブ
 
 ## 問題・範囲の変更
 
-`questions.js` に、英語と社会の問題がまとまっています。社会は「四大文明〜奈良時代」の32問です。各問題には固有ID、単元、解説、覚えるポイント、必要に応じた図解・確認問題があります。
+`questions.js` に、英語と社会の問題がまとまっています。問題ストックは英語60問、社会（四大文明〜奈良時代）64問です。模擬試験では各教科のストックから毎回ランダムに30問を出題します。各問題には固有ID、単元、解説、覚えるポイント、必要に応じた図解・確認問題があります。
 
 ## Ver.2の学習機能
 
